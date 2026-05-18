@@ -1,7 +1,7 @@
 {
   "name": "نظام إدارة النقود",
   "short_name": "إدارة النقود",
-  "start_url": "./",
+  "start_url": "/",  
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
