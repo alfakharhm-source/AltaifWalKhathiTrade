@@ -1,0 +1,3101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <link rel="manifest" href="manifest.json">
+
+<meta name="theme-color" content="#0d6efd">
+
+<link rel="icon" href="icon-192.png">
+
+<meta name="apple-mobile-web-app-capable" content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+
+<meta name="apple-mobile-web-app-title" content="إدارة الراتب">
+
+<link rel="apple-touch-icon" href="icon-192.png">
+
+<link rel="apple-touch-icon" href="assets/icon-192.png">
+    <title>نظام إدارة النقود</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: #f0f2f5;
+            font-family: 'Tahoma', 'Segoe UI', 'Roboto', system-ui, -apple-system, sans-serif;
+            padding: 12px;
+            min-height: 100vh;
+        }
+
+        /* نظام الرسائل المنبثقة الداخلية */
+        .toast-message {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2e7d32;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 50px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.2);
+            z-index: 9999;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            backdrop-filter: blur(5px);
+            background-color: #2e7d32dd;
+            border-right: 5px solid gold;
+            animation: slideDownFade 0.3s ease forwards;
+            pointer-events: none;
+            max-width: 90%;
+            text-align: center;
+            justify-content: center;
+        }
+        .toast-message.error {
+            background-color: #c62828dd;
+            border-right-color: #ffb74d;
+        }
+        .toast-message.warning {
+            background-color: #ed6c02dd;
+            border-right-color: #fff176;
+        }
+        @keyframes slideDownFade {
+            from {
+                opacity: 0;
+                top: 0px;
+            }
+            to {
+                opacity: 1;
+                top: 20px;
+            }
+        }
+        .toast-message.fade-out {
+            animation: fadeOutUp 0.3s ease forwards;
+        }
+        @keyframes fadeOutUp {
+            to {
+                opacity: 0;
+                top: -20px;
+                visibility: hidden;
+            }
+        }
+
+        .screen {
+            background: white;
+            border-radius: 28px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 0 auto;
+            max-width: 1400px;
+            transition: all 0.3s ease;
+            animation: fadeIn 0.3s ease;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .logo-container {
+            text-align: center;
+            cursor: pointer;
+            padding: 40px 20px;
+            background: linear-gradient(135deg, #1e3c72, #2a5298);
+            border-radius: 40px;
+            color: white;
+            transition: all 0.3s ease;
+        }
+
+        .logo-container:hover {
+            transform: scale(1.02);
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+        }
+
+        .logo-container:active {
+            transform: scale(0.98);
+        }
+
+        .logo-icon {
+            width: 100px;
+            height: 100px;
+            background: white;
+            border-radius: 50%;
+            padding: 15px;
+            margin-bottom: 20px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 50px;
+        }
+
+        .logo-container h1 {
+            font-size: clamp(24px, 5vw, 36px);
+            margin-bottom: 10px;
+        }
+
+        .logo-container p {
+            font-size: clamp(14px, 4vw, 18px);
+            opacity: 0.9;
+        }
+
+        .icons-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 20px;
+            margin: 30px 0;
+            padding: 10px;
+        }
+
+        .icon-card {
+            background: white;
+            border-radius: 20px;
+            padding: 18px 12px;
+            text-align: center;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+            transition: all 0.25s ease;
+            border: 1px solid #e0e0e0;
+        }
+
+        .icon-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+            background: #7fc7f7;
+            border-color: #2a5298;
+        }
+
+        .icon-card:active {
+            transform: translateY(0);
+        }
+
+        .icon-card div:first-child {
+            font-size: 48px;
+            margin-bottom: 10px;
+        }
+
+        .icon-card h3 {
+            font-size: clamp(16px, 4vw, 20px);
+            margin: 8px 0;
+            color: #1e3c72;
+        }
+
+        .counter {
+            font-size: 22px;
+            font-weight: bold;
+            color: #2a5298;
+            background: #eef2ff;
+            border-radius: 30px;
+            padding: 6px 12px;
+            margin-top: 10px;
+            display: inline-block;
+            min-width: 70px;
+        }
+
+        .window-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+
+        .window-header h2 {
+            font-size: clamp(20px, 5vw, 28px);
+            color: #1e3c72;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .window-total {
+            background: linear-gradient(135deg, #2a5298, #1e3c72);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
+            font-size: 18px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .window-total span {
+            font-size: 22px;
+            margin-left: 5px;
+        }
+
+        .form-panel {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+        }
+
+        .form-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            align-items: flex-end;
+        }
+
+        .form-group {
+            flex: 1;
+            min-width: 150px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        input, select {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #ccc;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        input:focus, select:focus {
+            outline: none;
+            border-color: #2a5298;
+            box-shadow: 0 0 0 3px rgba(42, 82, 152, 0.1);
+        }
+
+        button {
+            background: #2a5298;
+            color: white;
+            border: none;
+            padding: 10px 24px;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: #1e3c72;
+            transform: translateY(-1px);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        button.danger {
+            background: #dc3545;
+        }
+
+        button.danger:hover {
+            background: #c82333;
+        }
+
+        button.warning {
+            background: #ffc107;
+            color: #333;
+        }
+
+        button.warning:hover {
+            background: #e0a800;
+        }
+
+        .back-btn {
+            background: #6c757d;
+            margin-bottom: 20px;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            margin-top: 20px;
+            border-radius: 16px;
+            border: 1px solid #e0e0e0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 600px;
+        }
+
+        th, td {
+            border: 1px solid #ddd;
+            padding: 12px 8px;
+            text-align: center;
+            font-size: 14px;
+        }
+
+        th {
+            background: #2a5298;
+            color: white;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+        }
+
+        td {
+            background: white;
+        }
+
+        .branch-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .branch-header h2 {
+            font-size: clamp(20px, 5vw, 28px);
+            color: #1e3c72;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .action-buttons button {
+            padding: 6px 12px;
+            font-size: 12px;
+        }
+
+        .transfer-direction {
+            background: #e7f3ff;
+            border-radius: 12px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+
+        .transfer-direction label {
+            font-weight: bold;
+            color: #1e3c72;
+            margin-bottom: 10px;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 8px;
+            }
+
+            .screen {
+                padding: 15px;
+                border-radius: 20px;
+            }
+
+            .icons-grid {
+                grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+                gap: 12px;
+            }
+
+            .icon-card {
+                padding: 12px 8px;
+            }
+
+            .icon-card div:first-child {
+                font-size: 36px;
+            }
+
+            .counter {
+                font-size: 18px;
+                padding: 4px 8px;
+            }
+
+            .form-row {
+                flex-direction: column;
+                gap: 12px;
+            }
+
+            .form-group {
+                min-width: 100%;
+            }
+
+            button {
+                width: 100%;
+                padding: 12px;
+            }
+
+            th, td {
+                padding: 8px 6px;
+                font-size: 12px;
+            }
+
+            .action-buttons button {
+                padding: 5px 10px;
+                font-size: 11px;
+            }
+
+            .window-header {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .window-total {
+                text-align: center;
+            }
+        }
+
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .icons-grid {
+                grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+            }
+            .form-row {
+                gap: 12px;
+            }
+        }
+
+        @media (min-width: 1400px) {
+            .screen {
+                max-width: 1600px;
+            }
+            .icons-grid {
+                grid-template-columns: repeat(6, 1fr);
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #2a5298;
+            border-radius: 10px;
+        }
+
+        .cash-warning {
+            background: #fff3cd;
+            border: 1px solid #ffc107;
+            border-radius: 12px;
+            padding: 10px;
+            margin-bottom: 15px;
+            display: none;
+            align-items: center;
+            gap: 10px;
+            color: #856404;
+        }
+        #branchIconsContainer {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+}
+.icon-card {
+    text-align: center;
+    padding: 15px;
+    border-radius: 10px;
+    background: #deeaf1;
+    cursor: pointer;
+}
+#cashDepositCounter{
+    color:#0066ff;
+}
+
+#cashWithdrawCounter{
+    color:red;
+}
+
+.clear-btn{
+    padding:8px 14px;
+    border:none;
+    border-radius:8px;
+    background:#e53935;
+    color:#fff;
+    cursor:pointer;
+    font-size:14px;
+}
+
+.clear-btn:hover{
+    opacity:.9;
+}
+#loadingScreen{
+    position:fixed;
+    top:5;
+    left:0;
+    width:100%;
+    height:100%;
+    display:none;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    z-index:999999;
+}
+
+.loader{
+    width:80px;
+    height:80px;
+    border:8px solid #dbe7ff;
+    border-top:8px solid #2a5298;
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+}
+
+.loading-text{
+    margin-top:20px;
+    font-size:20px;
+    font-weight:bold;
+    color:#2a5298;
+}
+
+@keyframes spin{
+
+    0%{
+        transform:rotate(0deg);
+    }
+
+    100%{
+        transform:rotate(360deg);
+    }
+}
+/* زر إغلاق الصفحة */
+#closeAppBtn{
+    position:fixed;
+    bottom:15px;
+    left:50%;
+    transform:translateX(-50%);
+    z-index:99999;
+
+    background:#dc3545;
+    color:white;
+
+    border:none;
+    border-radius:16px;
+
+    padding:14px 28px;
+
+    font-size:16px;
+    font-weight:bold;
+
+    cursor:pointer;
+
+    box-shadow:0 4px 15px rgba(0,0,0,0.25);
+
+    transition:0.2s;
+}
+
+#closeAppBtn:hover{
+    transform:translateX(-50%) scale(1.05);
+}
+/* للهاتف */
+@media (max-width: 768px){
+
+    #closeAppBtn{
+        display:none !important;
+    }
+
+}
+@media (min-width: 992px){
+
+    /* شاشة الفروع الرئيسية */
+    #branchScreen .icons-grid{
+
+        grid-template-columns:
+        repeat(2, minmax(420px, 520px));
+
+        justify-content:center;
+
+        gap:40px;
+    }
+
+    #branchScreen .icon-card{
+
+        padding:45px 35px;
+
+        min-height:320px;
+
+        border-radius:30px;
+    }
+
+    #branchScreen .icon-card h3{
+
+        font-size:32px;
+
+        margin-top:20px;
+    }
+
+    #branchScreen .counter{
+
+        font-size:38px;
+
+        margin-top:20px;
+    }
+
+    #branchScreen .clear-btn{
+
+        font-size:18px;
+
+        padding:14px 20px;
+
+        margin-top:25px;
+    }
+
+}
+    </style>
+</head>
+<body>
+    <button id="closeAppBtn" onclick="closeApplication()">
+    ❌ إغلاق الصفحة
+</button>
+<div id="loadingScreen" style="display:none;">
+
+    <div class="loader"></div>
+
+    <div class="loading-text">
+        جاري تحميل البيانات...
+    </div>
+
+</div>
+<div id="mainScreen" class="screen">
+    <div class="logo-container" id="companyLogo">
+        <div class="logo-icon">🏢</div>
+        <h1>شركه الطيف و الكاذي للتجارة</h1>
+        <p>📊 نظام إدارة النقود المتكامل</p>
+        <p style="font-size: 14px; margin-top: 15px;">هاتف:95189918  -  هاتف:96189918</p>
+        <p style="font-size: 12px; margin-top: 10px; opacity:0.8;">🕒فرع الصبيخي  -  فرع الصناعية</p>
+    </div>
+</div>
+
+<div id="branchScreen" class="screen hidden">
+
+    <button class="back-btn" onclick="showMainScreen()">
+        🏠 العودة للرئيسية
+    </button>
+
+    <div class="icons-grid">
+
+        <div class="icon-card">
+
+            <div onclick="openBranch(1)" style="width:100%; cursor:pointer;">
+                <div>🏪</div>
+                <h3>فرع الصبيخي</h3>
+                <div class="counter" id="branch1TotalCounter">0</div>
+            </div>
+
+            <button class="clear-btn" onclick="clearBranchData(1)">
+                🗑 تصفير بيانات فرع الصبيخي
+            </button>
+
+        </div>
+
+        <div class="icon-card">
+
+            <div onclick="openBranch(2)" style="width:100%; cursor:pointer;">
+                <div>🏬</div>
+                <h3>فرع الصناعية</h3>
+                <div class="counter" id="branch2TotalCounter">0</div>
+            </div>
+
+            <button class="clear-btn" onclick="clearBranchData(2)">
+                🗑 تصفير بيانات فرع الصناعية
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+<div id="branchDetailsScreen" class="screen hidden">
+    <button class="back-btn" id="backFromBranchBtn">🔙 رجوع للفروع</button>
+    <div class="branch-header">
+        <h2 id="branchTitle">فرع</h2>
+       
+    </div>
+    <div class="icons-grid" id="branchIconsContainer"></div>
+</div>
+
+<div id="operationScreen" class="screen hidden">
+    <button class="back-btn" id="backToBranchFromOp">🔙 رجوع للفرع</button>
+    
+    <div class="window-header">
+        <h2 id="opTitle"></h2>
+        <div class="window-total" id="windowTotalCounter">
+            💰 الإجمالي: <span id="totalAmount">0.00</span>
+        </div>
+    </div>
+    
+    <div class="form-panel">
+<div id="cashCounters" style="
+display:none;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:15px;
+margin-bottom:20px;
+">
+
+   <div class="icon-card">
+    <h3 id="counterTitle1">💰 المبلغ الموجود</h3>
+    <div class="counter" id="cashBalanceCounter">0</div>
+</div>
+
+<div class="icon-card">
+    <h3 id="counterTitle2">📥 المبلغ المودع</h3>
+    <div class="counter" id="cashDepositCounter">0</div>
+</div>
+
+<div class="icon-card">
+    <h3 id="counterTitle3">📤 المبلغ المحول</h3>
+    <div class="counter" id="cashWithdrawCounter">0</div>
+</div>
+
+</div>
+        <div id="cashWarning" class="cash-warning" style="display:none;">
+        </div>
+       <div id="transferDirectionDiv" class="transfer-direction" style="display:none;">
+    <label>🔄 اتجاه العملية:</label>
+
+    <select id="transferDirection" style="width:100%; padding:10px;">
+
+        <!-- التحويلات -->
+        <option value="1to2">من فرع الصبيخي إلى فرع الصناعية</option>
+        <option value="2to1">من فرع الصناعية إلى فرع الصبيخي</option>
+
+    </select>
+
+    <small id="transferNote" style="color:#666;">
+        سيتم خصم المبلغ من المصدر وإضافته إلى الوجهة
+    </small>
+</div>
+
+        <div class="form-row">
+           
+               <div>
+                <button id="addBtn">➕ إضافة</button>
+            </div>
+            <div class="form-group">
+                <label>💰 المبلغ</label>
+                <input type="number" id="opAmount" placeholder="أدخل المبلغ">
+            </div>
+               <div class="form-group" id="expenseTypeGroup" style="display:none;">
+                <label>📌 نوع الصرف</label>
+                <input type="text" id="expenseType" placeholder="نوع الصرف">
+            </div>
+            <div class="form-group">
+                <label>📅 تاريخ الإضافة (تلقائي)</label>
+                <input type="text" id="opDate" readonly>
+            </div>
+          <div class="form-group">
+                <label>🔢 رقم العملية (تلقائي)</label>
+                <input type="text" id="opNumber" readonly>
+            </div>
+        </div>
+    </div>
+   <div class="table-container">
+            </div> <!-- نهاية form-panel -->
+
+<!-- فلاتر المخزون -->
+<div id="inventoryFilters" style="
+display:none;
+background:#eef4ff;
+padding:15px;
+border-radius:16px;
+margin-top:15px;
+margin-bottom:15px;
+">
+    <div>
+        <button
+            class="danger"
+            onclick="resetInventoryFilters()"
+        >
+            ❌ إلغاء الفلترة
+        </button>
+    </div>
+<div class="form-row">
+
+    <!-- من تاريخ -->
+   <div class="form-group">
+    <label>🔄 اتجاه التحويل</label>
+
+    <select
+        id="filterDirection"
+        onchange="applyInventoryFilters()"
+    >
+
+        <option value="">
+            كل العمليات
+        </option>
+
+        <option value="out">
+            الصادر
+        </option>
+
+        <option value="in">
+            الوارد
+        </option>
+
+    </select>
+</div>
+
+<div class="form-group">
+    <label>📅 من تاريخ</label>
+
+    <input
+        type="date"
+        id="filterFromDate"
+        onchange="applyInventoryFilters()"
+    >
+</div>
+
+<!-- إلى تاريخ -->
+<div class="form-group">
+    <label>📅 إلى تاريخ</label>
+
+    <input
+        type="date"
+        id="filterToDate"
+        onchange="applyInventoryFilters()"
+    >
+
+    <!-- زر إلغاء -->
+
+
+</div>
+
+<!-- إجمالي الفلترة -->
+<div style="
+display:flex;
+align-items:center;
+justify-content:center;
+background:#2a5298;
+color:white;
+padding:10px 18px;
+border-radius:14px;
+font-weight:bold;
+min-width:220px;
+">
+
+📊 إجمالي الفلترة:
+<span
+    id="filteredTotalAmount"
+    style="
+        margin-right:8px;
+        font-size:20px;
+        color:#ffd54f;
+    "
+>
+0.00
+</span>
+</div>
+</div>
+</div>
+<!-- شريط الأدوات فوق الجدول -->
+<div style="
+display:flex;
+justify-content:flex-start;
+direction:ltr;
+align-items:center;
+flex-wrap:wrap;
+gap:10px;
+margin:15px 0;
+">
+
+    <!-- زر التصفية -->
+    <button
+        class="danger"
+        onclick="clearCurrentTable()"
+        style="
+            padding:10px 18px;
+            border-radius:12px;
+            font-size:14px;
+            font-weight:bold;
+        "
+    >
+        🗑️ تصفير الجدول
+    </button>
+
+</div>
+
+<!-- الجدول -->
+<div class="table-container">
+
+    <table id="operationsTable">
+
+        <thead>
+            <tr>
+                <th>رقم العملية</th>
+                <th>المبلغ</th>
+                <th>نوع الصرف</th>
+                <th>مصدر الادخال</th>
+                <th>اتجاه التحويل</th>
+                <th>التاريخ</th>
+                <th>حذف</th>
+            </tr>
+        </thead>
+
+        <tbody id="tableBody"></tbody>
+
+    </table>
+
+</div>
+
+<script>
+    const API_URL =
+"https://script.google.com/macros/s/AKfycbyHqSsvpGhpmCl_JOU8klQIeU9pPEazRorn3UMi9o9-y_idqseNkaaysGfqGZdeGvby/exec";
+
+    // نظام الرسائل الداخلية
+    function showToast(message, type = 'success') {
+        // إزالة أي توست موجود
+        const existingToast = document.querySelector('.toast-message');
+        if(existingToast) existingToast.remove();
+        
+        const toast = document.createElement('div');
+        toast.className = `toast-message ${type}`;
+        let icon = '✅';
+        if(type === 'error') icon = '❌';
+        if(type === 'warning') icon = '⚠️';
+        toast.innerHTML = `${icon} ${message}`;
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.classList.add('fade-out');
+            setTimeout(() => {
+                if(toast.parentNode) toast.remove();
+            }, 300);
+        }, 3000);
+    }
+
+    function initializeData() {
+        return {
+            branch1: { 
+                inventory: [], 
+                purchases: [], 
+                sales: [], 
+                expenses: [], 
+                transfers: [], 
+                cash: [] 
+            },
+            branch2: { 
+                inventory: [], 
+                purchases: [], 
+                sales: [], 
+                expenses: [], 
+                transfers: [], 
+                cash: [] 
+            }
+        };
+    }
+
+    let data = initializeData();
+
+async function loadData() {
+
+    try {
+
+        const response =
+        await fetch(API_URL + "?action=load");
+
+        const result =
+        await response.json();
+
+        data = result;
+
+        updateAllCounters();
+
+        return true;
+
+    } catch(err) {
+
+        console.log(err);
+
+        data = initializeData();
+
+        showToast(
+            "❌ فشل تحميل البيانات",
+            "error"
+        );
+
+        return false;
+    }
+}
+   async function saveData() {
+
+    try {
+
+        await fetch(API_URL + "?action=save", {
+
+            method: "POST",
+
+            body: JSON.stringify(data)
+        });
+
+        updateAllCounters();
+
+        updateWindowTotal();
+
+    } catch(err) {
+
+        console.log(err);
+
+        showToast(
+            "فشل حفظ البيانات",
+            "error"
+        );
+    }
+}
+
+    function getTotalAmount(arr) {
+        if(!arr || !Array.isArray(arr)) return 0;
+        return arr.reduce((sum, item) => sum + (item.amount || 0), 0);
+    }
+
+    function getInventoryTotal(branch) {
+        return getTotalAmount(data[`branch${branch}`].inventory);
+    }
+
+ function updateAllCounters() {
+        const branch1Total = getInventoryTotal(1);
+        const branch2Total = getInventoryTotal(2);
+        const b1counter = document.getElementById('branch1TotalCounter');
+        const b2counter = document.getElementById('branch2TotalCounter');
+        if(b1counter) b1counter.innerText = branch1Total.toFixed(2);
+        if(b2counter) b2counter.innerText = branch2Total.toFixed(2);
+        
+        const branchTotalSpan = document.getElementById('branchTotal');
+        if(branchTotalSpan && currentBranch) {
+            const total = getInventoryTotal(currentBranch);
+            branchTotalSpan.innerText = ` الإجمالي للمخزون: ${total.toFixed(2)}`;
+        }
+        
+        updateWindowTotal();
+    }
+    
+    function updateWindowTotal() {
+        if (currentOpType && currentBranch && data[`branch${currentBranch}`]) {
+            const total = getTotalAmount(data[`branch${currentBranch}`][currentOpType]);
+            const totalSpan = document.getElementById('totalAmount');
+            if (totalSpan) {
+                totalSpan.innerText = total.toFixed(2);
+            }
+        }
+    }
+function updateCashCounters(){
+
+    if(currentOpType !== 'cash') return;
+
+    let cashArr = data[`branch${currentBranch}`].cash || [];
+
+    let balance = 0;
+    let deposits = 0;
+    let withdraws = 0;
+
+    cashArr.forEach(item=>{
+
+        balance += item.amount;
+
+        if(item.amount > 0){
+            deposits += item.amount;
+        }else{
+            withdraws += Math.abs(item.amount);
+        }
+
+    });
+
+    document.getElementById('cashBalanceCounter').innerText =
+    balance.toFixed(2);
+
+    document.getElementById('cashDepositCounter').innerText =
+    deposits.toFixed(2);
+
+    document.getElementById('cashWithdrawCounter').innerText =
+    withdraws.toFixed(2);
+}
+
+function updateTransferCounters(){
+
+    if(currentOpType !== 'transfers') return;
+
+    let transferArr =
+    data[`branch${currentBranch}`].transfers || [];
+
+    let inventoryBalance =
+    getInventoryTotal(currentBranch);
+
+    let transferred = 0;
+    let deposited = 0;
+
+    transferArr.forEach(item=>{
+
+        // الوارد
+        if(item.amount > 0){
+
+            deposited += item.amount;
+
+        }
+
+        // الصادر
+        if(item.amount < 0){
+
+            transferred += Math.abs(item.amount);
+        }
+
+    });
+
+    document.getElementById('cashBalanceCounter').innerText =
+    inventoryBalance.toFixed(2);
+
+    document.getElementById('cashDepositCounter').innerText =
+    deposited.toFixed(2);
+
+    document.getElementById('cashWithdrawCounter').innerText =
+    transferred.toFixed(2);
+}
+
+    function generateNumber(branch, type) {
+        let prefix = "";
+        if(type === "inventory") prefix = "STOR-";
+        else if(type === "purchases") prefix = "PUR-";
+        else if(type === "sales") prefix = "SAL-";
+        else if(type === "expenses") prefix = "SPN-";
+        else if(type === "transfers") prefix = "TRS-";
+        else if(type === "cash") prefix = "CASH-";
+        
+        const arr = data[`branch${branch}`][type];
+        if(!arr || !Array.isArray(arr)) return prefix + "0";
+        
+        let maxNum = -1;
+        for(let item of arr) {
+            let numPart = item.number.replace(prefix, "");
+            let num = parseInt(numPart);
+            if(!isNaN(num) && num > maxNum) maxNum = num;
+        }
+        let newNum = maxNum + 1;
+        if(newNum === -1) newNum = 0;
+        return prefix + newNum;
+    }
+
+    function getCurrentDateTime() {
+        let now = new Date();
+        let day = String(now.getDate()).padStart(2,'0');
+        let month = String(now.getMonth()+1).padStart(2,'0');
+        let year = now.getFullYear();
+        let hours = String(now.getHours()).padStart(2,'0');
+        let minutes = String(now.getMinutes()).padStart(2,'0');
+        return `${day}/${month}/${year} ${hours}:${minutes}`;
+    }
+
+    let currentBranch = 1;
+    let currentOpType = "";
+    let currentTableData = [];
+
+    function showMainScreen() {
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById('mainScreen').classList.remove('hidden');
+    }
+    
+    function showBranchScreen() {
+        updateAllCounters();
+        document.querySelectorAll('.screen').forEach(s => s.classList.add('hidden'));
+        document.getElementById('branchScreen').classList.remove('hidden');
+    }
+    
+  function showBranchDetails(branch) {
+
+    currentBranch = branch;
+
+    document.getElementById('branchTitle').innerHTML =
+    `فرع ${branch === 1 ? 'الصبيخي' : 'الصناعية'} <span style="font-size:14px;color:#2a5298;">📊</span>`;
+
+    const branchData =
+    data[`branch${currentBranch}`];
+
+    const icons = [
+
+        { name: 'المخزون', type: 'inventory', emoji: '📦' },
+
+        { name: 'المبيعات', type: 'purchases', emoji: '🛒' },
+
+        { name: 'المشتريات', type: 'sales', emoji: '💰' },
+
+        { name: 'المصاريف', type: 'expenses', emoji: '🧾' },
+
+        { name: 'التحويلات', type: 'transfers', emoji: '🔄' },
+
+        { name: 'الصندوق', type: 'cash', emoji: '💵' }
+    ];
+
+    const container =
+    document.getElementById('branchIconsContainer');
+
+    container.innerHTML = '';
+
+    icons.forEach(icon => {
+
+        let total =
+        getTotalAmount(branchData[icon.type]);
+
+        let card =
+        document.createElement('div');
+
+        card.className = 'icon-card';
+
+        // =========================
+        // محتوى البطاقة
+        // =========================
+        card.innerHTML = `
+
+            <div onclick="openOperation('${icon.type}')">
+
+                <div style="font-size:48px;">
+                    ${icon.emoji}
+                </div>
+
+                <h3>${icon.name}</h3>
+
+                <div class="counter">
+                    ${total.toFixed(2)}
+                </div>
+
+            </div>
+
+            <!-- زر الإضافة السريعة -->
+            <div style="margin-top:12px;">
+
+                <button
+                    style="
+                        width:45px;
+                        height:45px;
+                        border-radius:50%;
+                        font-size:22px;
+                        padding:0;
+                    "
+                    onclick="toggleQuickAdd(this,'${icon.type}')"
+                >
+                    +
+                </button>
+
+                <div
+                    class="quick-add-box"
+                    style="
+                        display:none;
+                        margin-top:10px;
+                    "
+                >
+
+                    <input
+                        type="number"
+                        placeholder="المبلغ"
+                        class="quick-amount"
+                        style="margin-bottom:8px;"
+                    >
+
+                    ${
+                        icon.type === 'cash'
+                        ?
+                        `
+                        <select class="quick-cash-type"
+                        style="margin-bottom:8px;">
+                            <option value="deposit">
+                                إيداع
+                            </option>
+                            <option value="withdraw">
+                                سحب
+                            </option>
+                        </select>
+                        `
+                        :
+                        ''
+                    }
+
+                    <input
+                        type="text"
+                        placeholder="نوع المصروف"
+                        class="quick-expense-type"
+                        style="
+                            margin-bottom:8px;
+                            display:${icon.type === 'expenses' ? 'block' : 'none'};
+                        "
+                    >
+
+                   <div style="
+    display:flex;
+    gap:8px;
+    margin-top:10px;
+">
+
+    <button
+        style="
+            flex:1;
+            background:#2a5298;
+        "
+        onclick="quickAddOperation(this.closest('.icon-card'),'${icon.type}')"
+    >
+        ➕ إدخال
+    </button>
+
+    <button
+        style="
+            flex:1;
+            background:#dc3545;
+        "
+        onclick="cancelQuickAdd(this)"
+    >
+        ✖ إلغاء
+    </button>
+
+</div>
+
+            </div>
+        `;
+
+        container.appendChild(card);
+
+    });
+
+    updateAllCounters();
+
+    document.querySelectorAll('.screen')
+    .forEach(s => s.classList.add('hidden'));
+
+    document.getElementById('branchDetailsScreen')
+    .classList.remove('hidden');
+}
+
+function toggleQuickAdd(btn, type){
+
+    let box =
+    btn.parentElement.querySelector('.quick-add-box');
+
+    let allBoxes =
+    document.querySelectorAll('.quick-add-box');
+
+    allBoxes.forEach(b=>{
+
+        if(b !== box){
+
+            b.style.display = 'none';
+        }
+    });
+
+    const isOpening =
+    box.style.display === 'none';
+
+    box.style.display =
+    isOpening ? 'block' : 'none';
+
+    // عند الفتح ركز على حقل المبلغ
+    if(isOpening){
+
+        setTimeout(()=>{
+
+            let amountInput =
+            box.querySelector('.quick-amount');
+
+            if(amountInput){
+
+                amountInput.focus();
+
+                amountInput.select();
+            }
+
+        },100);
+
+        // تنفيذ الإدخال عند الضغط Enter
+        const inputs =
+        box.querySelectorAll('input, select');
+
+        inputs.forEach(input=>{
+
+            input.onkeydown = function(e){
+
+                if(e.key === 'Enter'){
+
+                    e.preventDefault();
+
+                    quickAddOperation(
+                        btn.closest('.icon-card'),
+                        type
+                    );
+                }
+            };
+
+        });
+
+    }
+}
+
+function cancelQuickAdd(btn){
+
+    let card =
+    btn.closest('.icon-card');
+
+    // إخفاء النافذة
+    let box =
+    card.querySelector('.quick-add-box');
+
+    box.style.display = 'none';
+
+    // تصفير الحقول
+    let amountInput =
+    card.querySelector('.quick-amount');
+
+    if(amountInput){
+
+        amountInput.value = '';
+    }
+
+    let expenseInput =
+    card.querySelector('.quick-expense-type');
+
+    if(expenseInput){
+
+        expenseInput.value = '';
+    }
+
+    let cashSelect =
+    card.querySelector('.quick-cash-type');
+
+    if(cashSelect){
+
+        cashSelect.selectedIndex = 0;
+    }
+}
+
+function quickAddOperation(card, type){
+
+    let amountInput =
+    card.querySelector('.quick-amount');
+
+    let amount =
+    parseFloat(amountInput.value);
+
+    if(isNaN(amount) || amount <= 0){
+
+        showToast(
+            "أدخل مبلغ صحيح",
+            "error"
+        );
+
+        return;
+    }
+
+    let expenseTypeInput =
+    card.querySelector('.quick-expense-type');
+
+    let cashTypeSelect =
+    card.querySelector('.quick-cash-type');
+
+    let date =
+    getCurrentDateTime();
+
+    let number =
+    generateNumber(currentBranch, type);
+
+    // =========================
+    // المخزون
+    // =========================
+    if(type === 'inventory'){
+
+        data[`branch${currentBranch}`].inventory.push({
+
+            number,
+            amount,
+            source: "إضافة سريعة للمخزون",
+            date,
+            expenseType: null
+        });
+
+        showToast(
+            `✅ تمت إضافة ${amount} للمخزون`
+        );
+    }
+
+    // =========================
+    // المشتريات
+    // =========================
+    else if(type === 'sales'){
+
+        data[`branch${currentBranch}`].sales.push({
+
+            number,
+            amount,
+            source: "إضافة سريعة للمشتريات",
+            date,
+            expenseType: null
+        });
+
+        data[`branch${currentBranch}`].inventory.push({
+
+            number: "INV-" + Date.now(),
+            amount,
+            source: "إضافة تلقائية من المشتريات",
+            date,
+            expenseType: null
+        });
+
+        showToast(
+            `✅ تمت إضافة ${amount} للمشتريات`
+        );
+    }
+
+    // =========================
+    // المبيعات
+    // =========================
+    else if(type === 'purchases'){
+
+        let currentInventory =
+        getInventoryTotal(currentBranch);
+
+        if(currentInventory < amount){
+
+            showToast(
+                "❌ المخزون غير كافٍ",
+                "error"
+            );
+
+            return;
+        }
+
+        data[`branch${currentBranch}`].purchases.push({
+
+            number,
+            amount,
+            source: "إضافة سريعة للمبيعات",
+            date,
+            expenseType: null
+        });
+
+        data[`branch${currentBranch}`].inventory.push({
+
+            number: "INV-" + Date.now(),
+            amount: -amount,
+            source: "خصم تلقائي من المبيعات",
+            date,
+            expenseType: null
+        });
+
+        data[`branch${currentBranch}`].cash.push({
+
+            number: "CASH-" + Date.now(),
+            amount,
+            source: "إيداع تلقائي من المبيعات",
+            date,
+            expenseType: null,
+            transferDirection: `إيداع مبلغ (+${amount})`
+        });
+
+        showToast(
+            `✅ تمت إضافة ${amount} للمبيعات`
+        );
+    }
+
+    // =========================
+    // المصاريف
+    // =========================
+    else if(type === 'expenses'){
+
+        let currentInventory =
+        getInventoryTotal(currentBranch);
+
+        if(currentInventory < amount){
+
+            showToast(
+                "❌ المخزون غير كافٍ",
+                "error"
+            );
+
+            return;
+        }
+
+        let expType =
+        expenseTypeInput.value || 'مصروف';
+
+        data[`branch${currentBranch}`].expenses.push({
+
+            number,
+            amount,
+            source: "إضافة سريعة للمصاريف",
+            date,
+            expenseType: expType
+        });
+
+        data[`branch${currentBranch}`].inventory.push({
+
+            number: "INV-" + Date.now(),
+            amount: -amount,
+            source: "خصم تلقائي من المصاريف",
+            date,
+            expenseType: null
+        });
+
+        showToast(
+            `✅ تمت إضافة ${amount} للمصاريف`
+        );
+    }
+
+    // =========================
+    // التحويلات
+    // =========================
+    else if(type === 'transfers'){
+
+        let fromBranch =
+        currentBranch;
+
+        let toBranch =
+        currentBranch === 1 ? 2 : 1;
+
+        let currentInventory =
+        getInventoryTotal(fromBranch);
+
+        if(currentInventory < amount){
+
+            showToast(
+                "❌ المخزون غير كافٍ للتحويل",
+                "error"
+            );
+
+            return;
+        }
+
+        data[`branch${fromBranch}`]
+.transfers.push({
+    linkedNumber: number,
+
+            number,
+            amount: -amount,
+            source: "تحويل صادر سريع",
+            date,
+            expenseType: null,
+            transferDirection:
+            fromBranch === 1
+            ? "من فرع الصبيخي ⟵ فرع الصناعية"
+            : "من فرع الصناعية ⟵ فرع الصبيخي"
+        });
+
+       data[`branch${toBranch}`]
+.transfers.push({
+    linkedNumber: number,
+
+            number: number + "-IN",
+            amount,
+            source: "تحويل وارد سريع",
+            date,
+            expenseType: null,
+            transferDirection:
+            fromBranch === 1
+            ? "من فرع الصبيخي ⟵ فرع الصناعية"
+            : "من فرع الصناعية ⟵ فرع الصبيخي"
+        });
+
+        data[`branch${fromBranch}`].inventory.push({
+
+            number: "INV-OUT-" + Date.now(),
+            amount: -amount,
+            source: "تحويل صادر",
+            date
+        });
+
+        data[`branch${toBranch}`].inventory.push({
+
+            number: "INV-IN-" + Date.now(),
+            amount,
+            source: "تحويل وارد",
+            date
+        });
+
+        showToast(
+            `✅ تم تحويل ${amount}`
+        );
+    }
+
+    // =========================
+    // الصندوق
+    // =========================
+    else if(type === 'cash'){
+
+        let cashType =
+        cashTypeSelect.value;
+
+        let signedAmount =
+        cashType === 'deposit'
+        ? amount
+        : -amount;
+
+        let currentCash =
+        getTotalAmount(
+            data[`branch${currentBranch}`].cash
+        );
+
+        if(cashType === 'withdraw'
+        && currentCash < amount){
+
+            showToast(
+                "❌ رصيد الصندوق غير كافٍ",
+                "error"
+            );
+
+            return;
+        }
+
+        data[`branch${currentBranch}`].cash.push({
+
+            number,
+            amount: signedAmount,
+            source: "عملية سريعة للصندوق",
+            date,
+            expenseType: null,
+            transferDirection:
+            cashType === 'deposit'
+            ? `إيداع مبلغ (+${amount})`
+            : `سحب مبلغ (-${amount})`
+        });
+
+        showToast(
+            cashType === 'deposit'
+            ? `✅ تم إيداع ${amount}`
+            : `✅ تم سحب ${amount}`
+        );
+    }
+
+    saveData();
+
+    showBranchDetails(currentBranch);
+}
+    
+     function openBranch(branch) {
+        showBranchDetails(branch);
+    }
+    
+  function openOperation(type) {
+
+    currentOpType = type;
+
+    let titleText = ``;
+    loadTableData();
+    
+    if(type === 'inventory') titleText = '📦 إدارة المخزون';
+    else if(type === 'purchases') titleText = '🛒 المبيعات';
+    else if(type === 'sales') titleText = '💰 المشتريات';
+    else if(type === 'expenses') titleText = '🧾 المصاريف';
+    else if(type === 'transfers') titleText = '🔄 التحويلات بين الفروع';
+    else if(type === 'cash') titleText = '💵 الصندوق';
+
+    document.getElementById('opTitle').innerHTML =
+    `🏢 فرع ${currentBranch === 1 ? 'الصبيخي' : 'الصناعية'} - ${titleText}`;
+
+    document.getElementById('cashCounters').style.display =
+    (type === 'cash' || type === 'transfers')
+    ? 'grid'
+    : 'none';
+
+    updateWindowTotal();
+
+    if(type === 'transfers'){
+
+        document.getElementById('counterTitle1').innerText =
+        '💰 المبلغ الموجود';
+
+        document.getElementById('counterTitle2').innerText =
+        '📥 المبلغ المودع';
+
+        document.getElementById('counterTitle3').innerText =
+        '📤 المبلغ المحول';
+
+        updateTransferCounters();
+
+    }else if(type === 'cash'){
+
+        document.getElementById('counterTitle1').innerText =
+        '💰 المبلغ الموجود';
+
+        document.getElementById('counterTitle2').innerText =
+        '📥 المبلغ المودع';
+
+        document.getElementById('counterTitle3').innerText =
+        '📤 المبلغ المسحوب';
+
+        updateCashCounters();
+    }
+
+    const expenseGroup =
+    document.getElementById('expenseTypeGroup');
+
+    expenseGroup.style.display =
+    (type === 'expenses')
+    ? 'block'
+    : 'none';
+
+    const transferDirectionDiv =
+    document.getElementById('transferDirectionDiv');
+
+    const transferSelect =
+    document.getElementById('transferDirection');
+
+    const transferNote =
+    document.getElementById('transferNote');
+
+    if(type === 'transfers'){
+
+        transferDirectionDiv.style.display = 'block';
+
+        // إخفاء القائمة المنسدلة
+        transferSelect.style.display = 'none';
+
+        if(currentBranch === 1){
+
+            transferNote.innerHTML =
+            "🔄 التحويل سيتم تلقائياً من فرع الصبيخي ⟵ فرع الصناعية";
+
+        }else{
+
+            transferNote.innerHTML =
+            "🔄 التحويل سيتم تلقائياً من فرع الصناعية ⟵ فرع الصبيخي";
+        }
+
+    }
+    else if(type === 'cash'){
+
+        transferDirectionDiv.style.display = 'block';
+
+        transferSelect.style.display = 'block';
+
+        transferSelect.innerHTML = `
+            <option value="deposit">إيداع مبلغ (+)</option>
+            <option value="withdraw">سحب مبلغ (-)</option>
+        `;
+
+        transferNote.innerText = "";
+
+    }
+    else{
+
+        transferDirectionDiv.style.display = 'none';
+    }
+
+    const cashWarning =
+    document.getElementById('cashWarning');
+
+    cashWarning.style.display =
+    (type === 'cash')
+    ? 'flex'
+    : 'none';
+
+    let newNumber =
+    generateNumber(currentBranch, type);
+
+    document.getElementById('opNumber').value =
+    newNumber;
+
+    document.getElementById('opAmount').value = '';
+setTimeout(() => {
+
+    const amountInput =
+    document.getElementById('opAmount');
+
+    amountInput.focus();
+
+}, 100);
+
+    document.getElementById('opDate').value =
+    getCurrentDateTime();
+
+    const addBtn =
+    document.getElementById('addBtn');
+
+    addBtn.onclick = () => addOperation();
+
+    loadTableData();
+
+    document.querySelectorAll('.screen')
+    .forEach(s => s.classList.add('hidden'));
+
+    document.getElementById('operationScreen')
+    .classList.remove('hidden');
+    // إظهار الفلاتر فقط في المخزون
+document.getElementById('inventoryFilters').style.display =
+(type === 'transfers')
+? 'block'
+: 'none';
+}
+    
+    function loadTableData() {
+        const branchData = data[`branch${currentBranch}`][currentOpType];
+        if(!branchData || !Array.isArray(branchData)) {
+            currentTableData = [];
+        } else {
+            currentTableData = [...branchData];
+currentTableData.sort((a,b)=>{
+
+    let da =
+    convertDateToComparable(a.date) || "";
+
+    let db =
+    convertDateToComparable(b.date) || "";
+
+    return db.localeCompare(da);
+
+});
+        }
+        renderTable(currentTableData);
+        updateWindowTotal();
+        updateCashCounters();
+    }
+    
+ function renderTable(dataArray) {
+
+    const tbody = document.getElementById('tableBody');
+
+    tbody.innerHTML = '';
+
+    const actionsHeader =
+    document.querySelector('#operationsTable thead tr th:last-child');
+
+    // إظهار عمود الحذف دائماً
+    actionsHeader.style.display = '';
+
+    for(let item of dataArray) {
+
+        let row = tbody.insertRow();
+
+        row.insertCell(0).innerText =
+        item.number;
+
+        // المبلغ
+        let amountCell =
+        row.insertCell(1);
+
+        amountCell.innerText =
+        item.amount;
+
+        if(currentOpType === 'transfers'){
+
+            if(item.amount < 0){
+
+                amountCell.style.color = 'red';
+
+            }else{
+
+                amountCell.style.color = '#0066ff';
+            }
+
+            amountCell.style.fontWeight = 'bold';
+        }
+
+        // نوع الصرف
+        let expenseCell =
+        row.insertCell(2);
+
+        expenseCell.innerText =
+        item.expenseType || '---';
+
+        // المصدر
+        row.insertCell(3).innerText =
+        item.source || '---';
+
+        // الاتجاه
+        let directionCell =
+        row.insertCell(4);
+
+        directionCell.innerHTML =
+        item.transferDirection || '---';
+
+        // التاريخ
+        row.insertCell(5).innerText =
+        item.date;
+
+        // الحذف
+        let actionsCell =
+        row.insertCell(6);
+
+        actionsCell.className =
+        'action-buttons';
+
+        let delBtn =
+        document.createElement('button');
+
+        delBtn.innerText =
+        '🗑️ حذف';
+
+        delBtn.className =
+        'danger';
+
+        delBtn.onclick =
+        () => deleteOperation(item.number);
+
+        actionsCell.appendChild(delBtn);
+    }
+}
+
+function convertDateToComparable(dateStr){
+
+    if(!dateStr || typeof dateStr !== 'string')
+        return "";
+
+    let onlyDate =
+    dateStr.split(' ')[0];
+
+    let parts =
+    onlyDate.split('/');
+
+    if(parts.length !== 3)
+        return "";
+
+    let day =
+    String(parts[0]).padStart(2,'0');
+
+    let month =
+    String(parts[1]).padStart(2,'0');
+
+    let year =
+    String(parts[2]);
+
+    return `${year}-${month}-${day}`;
+}
+
+function applyInventoryFilters(){
+
+    let direction =
+    document.getElementById('filterDirection').value;
+
+    let fromDate =
+    document.getElementById('filterFromDate').value;
+
+    let toDate =
+    document.getElementById('filterToDate').value;
+
+    // تحديد نوع البيانات الحالية
+    let arr =
+    [...data[`branch${currentBranch}`][currentOpType]];
+
+    // فلترة الصادر والوارد
+    if(direction === 'out'){
+
+        arr =
+        arr.filter(item => item.amount < 0);
+    }
+
+    else if(direction === 'in'){
+
+        arr =
+        arr.filter(item => item.amount > 0);
+    }
+
+    // فلترة من تاريخ
+    if(fromDate){
+
+        arr =
+        arr.filter(item => {
+
+            let itemDate =
+            convertDateToComparable(item.date);
+
+            return itemDate >= fromDate;
+        });
+    }
+
+    // فلترة إلى تاريخ
+    if(toDate){
+
+        arr =
+        arr.filter(item => {
+
+            let itemDate =
+            convertDateToComparable(item.date);
+
+            return itemDate <= toDate;
+        });
+    }
+
+    renderTable(arr);
+
+    // إجمالي الفلترة
+    let filteredTotal =
+    arr.reduce((sum,item)=>
+        sum + item.amount
+    ,0);
+
+    document.getElementById('filteredTotalAmount')
+    .innerText =
+    filteredTotal.toFixed(2);
+}
+
+
+
+function resetInventoryFilters(){
+
+    document.getElementById('filterDirection').value = '';
+
+    document.getElementById('filterFromDate').value = '';
+
+    document.getElementById('filterToDate').value = '';
+document.getElementById('filteredTotalAmount')
+.innerText = '0.00';
+    loadTableData();
+}
+    
+    function addOperation() {
+
+    let amount =
+    parseFloat(document.getElementById('opAmount').value);
+
+    if(isNaN(amount) || amount <= 0){
+
+        showToast(
+            "الرجاء إدخال مبلغ صحيح",
+            "error"
+        );
+
+        return;
+    }
+
+    let number =
+    document.getElementById('opNumber').value;
+
+    let date = getCurrentDateTime();
+
+    let source = "";
+
+    if(currentOpType === 'inventory')
+        source = "المخزون";
+
+    else if(currentOpType === 'purchases')
+        source = "المبيعات";
+
+    else if(currentOpType === 'sales')
+        source = "المشتريات";
+
+    else if(currentOpType === 'expenses')
+        source = "المصاريف";
+
+    else if(currentOpType === 'transfers')
+        source = "التحويلات";
+
+    else if(currentOpType === 'cash')
+        source = "الصندوق";
+
+    let expenseTypeVal =
+    (currentOpType === 'expenses')
+    ? document.getElementById('expenseType').value
+    : null;
+
+    // =========================
+    // المشتريات -> زيادة المخزون
+    // =========================
+    if(currentOpType === 'sales') {
+
+        data[`branch${currentBranch}`].inventory.push({
+            number: "INV-SALE-" + Date.now(),
+            amount: amount,
+            source: `إضافة من المشتريات (رقم ${number})`,
+            date: date,
+            expenseType: null
+        });
+
+        let newItem = {
+            number,
+            amount,
+            source,
+            date,
+            expenseType: expenseTypeVal
+        };
+
+        data[`branch${currentBranch}`].sales.push(newItem);
+
+        saveData();
+        loadTableData();
+
+        document.getElementById('opNumber').value =
+        generateNumber(currentBranch, currentOpType);
+
+        document.getElementById('opAmount').value = '';
+
+        document.getElementById('opDate').value =
+        getCurrentDateTime();
+
+        showToast(
+            `✅ تمت إضافة ${amount} إلى المشتريات وزيادة المخزون`,
+            "success"
+        );
+
+        return;
+    }
+
+    // =========================
+    // المبيعات والمصاريف -> خصم من المخزون
+    // =========================
+    if(currentOpType === 'purchases'
+    || currentOpType === 'expenses') {
+
+        let currentInventory =
+        getInventoryTotal(currentBranch);
+
+        if(currentInventory < amount){
+
+            showToast(
+                `❌ رصيد المخزون غير كافٍ! الرصيد الحالي: ${currentInventory.toFixed(2)}`,
+                "error"
+            );
+
+            return;
+        }
+
+        data[`branch${currentBranch}`].inventory.push({
+            number: "INV-PUR-EXP-" + Date.now(),
+            amount: -amount,
+            source: `خصم من ${source}`,
+            date: date,
+            expenseType: null
+        });
+
+        let newItem = {
+            number,
+            amount,
+            source,
+            date,
+            expenseType: expenseTypeVal
+        };
+
+        data[`branch${currentBranch}`][currentOpType]
+        .push(newItem);
+
+        // إيداع تلقائي للمبيعات بالصندوق
+        if(currentOpType === 'purchases'){
+
+            data[`branch${currentBranch}`].cash.push({
+                number: "CASH-SALE-" + Date.now(),
+                amount: amount,
+                source: "إيداع تلقائي من المبيعات",
+                date: date,
+                expenseType: null,
+                transferDirection: `إيداع مبلغ (+${amount})`
+            });
+        }
+
+        saveData();
+        loadTableData();
+
+        document.getElementById('opNumber').value =
+        generateNumber(currentBranch, currentOpType);
+
+        document.getElementById('opAmount').value = '';
+
+        document.getElementById('opDate').value =
+        getCurrentDateTime();
+
+        if(currentOpType === 'expenses'){
+
+            document.getElementById('expenseType').value =
+            'إيجار';
+        }
+
+        showToast(
+            `✅ تمت الإضافة وخصم ${amount} من المخزون`,
+            "success"
+        );
+
+        return;
+    }
+
+    // =========================
+    // الصندوق
+    // =========================
+    if(currentOpType === 'cash') {
+
+        let cashType =
+        document.getElementById('transferDirection').value;
+
+        let isDeposit =
+        cashType === 'deposit';
+
+        let signedAmount =
+        isDeposit
+        ? amount
+        : -amount;
+
+        let currentCashBalance =
+        getTotalAmount(data[`branch${currentBranch}`].cash);
+
+        if(!isDeposit && currentCashBalance < amount){
+
+            showToast(
+                `❌ رصيد الصندوق غير كافٍ! الرصيد الحالي: ${currentCashBalance.toFixed(2)}`,
+                "error"
+            );
+
+            return;
+        }
+
+        let transferText =
+        isDeposit
+        ? `إيداع مبلغ (+${amount})`
+        : `سحب مبلغ (-${amount})`;
+
+        let newCashItem = {
+            number,
+            amount: signedAmount,
+            source,
+            date,
+            expenseType: expenseTypeVal,
+            transferDirection: transferText
+        };
+
+        data[`branch${currentBranch}`].cash.push(newCashItem);
+
+        saveData();
+        loadTableData();
+
+        document.getElementById('opNumber').value =
+        generateNumber(currentBranch, currentOpType);
+
+        document.getElementById('opAmount').value = '';
+
+        document.getElementById('opDate').value =
+        getCurrentDateTime();
+
+        showToast(
+            isDeposit
+            ? `✅ تم إيداع ${amount} في الصندوق`
+            : `✅ تم سحب ${amount} من الصندوق`,
+            "success"
+        );
+
+        return;
+    }
+
+    // =========================
+    // التحويلات
+    // =========================
+    if(currentOpType === 'transfers') {
+
+    let fromBranch;
+    let toBranch;
+    let directionText = "";
+
+    // تحديد الاتجاه تلقائياً
+    if(currentBranch === 1){
+
+        fromBranch = 1;
+        toBranch = 2;
+
+        directionText =
+        "من فرع الصبيخي ⟵ فرع الصناعية";
+
+    }else{
+
+        fromBranch = 2;
+        toBranch = 1;
+
+        directionText =
+        "من فرع الصناعية ⟵ فرع الصبيخي";
+    }
+
+    let fromInventoryTotal =
+    getInventoryTotal(fromBranch);
+
+    if(fromInventoryTotal < amount){
+
+        showToast(
+            `❌ رصيد المخزون غير كافٍ! الرصيد الحالي: ${fromInventoryTotal.toFixed(2)}`,
+            "error"
+        );
+
+        return;
+    }
+
+    // خصم من المصدر
+    data[`branch${fromBranch}`].inventory.push({
+        number: "INV-TRF-OUT-" + Date.now(),
+        amount: -amount,
+        source: `تحويل صادر إلى الفرع ${toBranch}`,
+        date: date,
+        expenseType: null
+    });
+
+    // إضافة للوجهة
+    data[`branch${toBranch}`].inventory.push({
+        number: "INV-TRF-IN-" + Date.now(),
+        amount: amount,
+        source: `تحويل وارد من الفرع ${fromBranch}`,
+        date: date,
+        expenseType: null
+    });
+
+    // العملية في الفرع المصدر بالسالب
+    data[`branch${fromBranch}`]
+    .transfers.push({
+        number,
+        amount: -amount,
+        source: "تحويل صادر",
+        date,
+        expenseType: null,
+        transferDirection: directionText,
+        fromBranch,
+        toBranch
+    });
+
+    // العملية في الفرع المستقبل بالموجب
+    data[`branch${toBranch}`]
+    .transfers.push({
+        number: number + "-IN",
+        amount: amount,
+        source: "تحويل وارد",
+        date,
+        expenseType: null,
+        transferDirection: directionText,
+        fromBranch,
+        toBranch
+    });
+
+    saveData();
+    loadTableData();
+
+    updateTransferCounters();
+
+    document.getElementById('opNumber').value =
+    generateNumber(currentBranch, currentOpType);
+
+    document.getElementById('opAmount').value = '';
+
+    document.getElementById('opDate').value =
+    getCurrentDateTime();
+
+    showToast(
+        `✅ تم تحويل ${amount} بنجاح`,
+        "success"
+    );
+
+    return;
+}
+
+    // =========================
+    // العمليات العادية
+    // =========================
+    let newItem = {
+        number,
+        amount,
+        source,
+        date,
+        expenseType: expenseTypeVal
+    };
+
+    data[`branch${currentBranch}`][currentOpType]
+    .push(newItem);
+
+    saveData();
+    loadTableData();
+
+    document.getElementById('opNumber').value =
+    generateNumber(currentBranch, currentOpType);
+
+    document.getElementById('opAmount').value = '';
+
+    document.getElementById('opDate').value =
+    getCurrentDateTime();
+
+    showToast(
+        "✅ تمت الإضافة بنجاح",
+        "success"
+    );
+}
+    
+async function clearCurrentTable(){
+
+    let confirmClear =
+    confirm("⚠️ هل أنت متأكد من حذف جميع بيانات هذا الجدول؟");
+
+    if(!confirmClear) return;
+
+    // =========================
+    // التحويلات
+    // =========================
+    if(currentOpType === 'transfers'){
+
+        data[`branch${currentBranch}`].transfers = [];
+
+        showToast(
+            "🗑️ تم تصفية جدول التحويلات",
+            "warning"
+        );
+
+        saveData();
+
+        loadTableData();
+
+        updateTransferCounters();
+
+        return;
+    }
+
+    // =========================
+    // الصندوق
+    // =========================
+    if(currentOpType === 'cash'){
+
+        data[`branch${currentBranch}`].cash = [];
+
+        showToast(
+            "🗑️ تم تصفية جدول الصندوق",
+            "warning"
+        );
+
+        saveData();
+
+        loadTableData();
+
+        updateCashCounters();
+
+        return;
+    }
+
+    // =========================
+    // المبيعات
+    // =========================
+    if(currentOpType === 'purchases'){
+
+        let total =
+        getTotalAmount(
+            data[`branch${currentBranch}`].purchases
+        );
+
+        // حذف المبيعات
+        data[`branch${currentBranch}`].purchases = [];
+
+        // إعادة المبلغ للمخزون
+        if(total > 0){
+
+            data[`branch${currentBranch}`].inventory.push({
+
+                number: "REV-PUR-ALL-" + Date.now(),
+
+                amount: total,
+
+                source: "استرجاع تصفية المبيعات",
+
+                date: getCurrentDateTime()
+            });
+        }
+
+        showToast(
+            "🗑️ تم تصفية جدول المبيعات وإرجاع المبلغ للمخزون",
+            "warning"
+        );
+
+        saveData();
+
+        loadTableData();
+
+        return;
+    }
+
+    // =========================
+    // المشتريات
+    // =========================
+    if(currentOpType === 'sales'){
+
+        let total =
+        getTotalAmount(
+            data[`branch${currentBranch}`].sales
+        );
+
+        data[`branch${currentBranch}`].sales = [];
+
+        // خصم الزيادة من المخزون
+        if(total > 0){
+
+            data[`branch${currentBranch}`].inventory.push({
+
+                number: "REV-SALES-ALL-" + Date.now(),
+
+                amount: -total,
+
+                source: "عكس تصفية المشتريات",
+
+                date: getCurrentDateTime()
+            });
+        }
+
+        showToast(
+            "🗑️ تم تصفية جدول المشتريات",
+            "warning"
+        );
+
+        saveData();
+
+        loadTableData();
+
+        return;
+    }
+
+    // =========================
+    // المصاريف
+    // =========================
+    if(currentOpType === 'expenses'){
+
+        let total =
+        getTotalAmount(
+            data[`branch${currentBranch}`].expenses
+        );
+
+        data[`branch${currentBranch}`].expenses = [];
+
+        // إعادة المبلغ للمخزون
+        if(total > 0){
+
+            data[`branch${currentBranch}`].inventory.push({
+
+                number: "REV-EXP-ALL-" + Date.now(),
+
+                amount: total,
+
+                source: "استرجاع تصفية المصاريف",
+
+                date: getCurrentDateTime()
+            });
+        }
+
+        showToast(
+            "🗑️ تم تصفية جدول المصاريف",
+            "warning"
+        );
+
+        saveData();
+
+        loadTableData();
+
+        return;
+    }
+
+    // =========================
+    // المخزون
+    // =========================
+    if(currentOpType === 'inventory'){
+
+        data[`branch${currentBranch}`].inventory = [];
+
+        showToast(
+            "🗑️ تم تصفية جدول المخزون",
+            "warning"
+        );
+
+        saveData();
+
+        loadTableData();
+
+        return;
+    }
+
+    // =========================
+    // افتراضي
+    // =========================
+    data[`branch${currentBranch}`][currentOpType] = [];
+
+    saveData();
+
+    loadTableData();
+
+    showToast(
+        "🗑️ تم تصفية الجدول",
+        "warning"
+    );
+}
+
+  function deleteOperation(number) {
+
+    if(!confirm("⚠️ هل أنت متأكد من حذف العملية؟"))
+        return;
+
+    // =====================================
+    // التحويلات
+    // =====================================
+    if(currentOpType === 'transfers'){
+
+        let currentArr =
+        data[`branch${currentBranch}`].transfers;
+
+        let item =
+        currentArr.find(i => i.number === number);
+
+        if(!item){
+
+            showToast("العملية غير موجودة","error");
+            return;
+        }
+
+        let amount =
+        Math.abs(item.amount);
+
+        let fromBranch =
+        item.fromBranch;
+
+        let toBranch =
+        item.toBranch;
+
+        // حذف التحويل من الفرعين
+        data[`branch${fromBranch}`].transfers =
+        data[`branch${fromBranch}`].transfers
+        .filter(i =>
+            i.number !== number &&
+            i.number !== number + "-IN" &&
+            i.number.replace("-IN","") !== number
+        );
+
+        data[`branch${toBranch}`].transfers =
+        data[`branch${toBranch}`].transfers
+        .filter(i =>
+            i.number !== number &&
+            i.number !== number + "-IN" &&
+            i.number.replace("-IN","") !== number
+        );
+
+        // إرجاع المخزون للفرع المصدر
+        data[`branch${fromBranch}`].inventory.push({
+
+            number: "REV-TRF-" + Date.now(),
+
+            amount: amount,
+
+            source: "إلغاء تحويل",
+
+            date: getCurrentDateTime()
+        });
+
+        // خصم من الفرع المستقبل
+        data[`branch${toBranch}`].inventory.push({
+
+            number: "REV-TRF2-" + Date.now(),
+
+            amount: -amount,
+
+            source: "إلغاء تحويل",
+
+            date: getCurrentDateTime()
+        });
+
+        saveData();
+
+        loadTableData();
+
+        updateTransferCounters();
+
+        showToast(
+            "🗑️ تم حذف التحويل وعكس العملية",
+            "success"
+        );
+
+        return;
+    }
+
+    // =====================================
+    // الصندوق
+    // =====================================
+    if(currentOpType === 'cash'){
+
+        let cashArr =
+        data[`branch${currentBranch}`].cash;
+
+        let item =
+        cashArr.find(i => i.number === number);
+
+        if(!item){
+
+            showToast("العملية غير موجودة","error");
+            return;
+        }
+
+        // حذف العملية من الصندوق
+        data[`branch${currentBranch}`].cash =
+        cashArr.filter(i => i.number !== number);
+
+        // إذا كانت من المبيعات
+      if(item.source &&
+item.source.includes("إيداع تلقائي من المبيعات")){
+
+    let saleAmount =
+    Math.abs(item.amount);
+
+    // حذف عملية المبيعات الأصلية
+    let purchasesArr =
+    data[`branch${currentBranch}`].purchases;
+
+    let saleItem =
+    purchasesArr.find(p => p.amount === saleAmount);
+
+    if(saleItem){
+
+        purchasesArr =
+        purchasesArr.filter(p =>
+            p.number !== saleItem.number
+        );
+
+        data[`branch${currentBranch}`].purchases =
+        purchasesArr;
+
+        // إرجاع المبلغ للمخزون
+        data[`branch${currentBranch}`].inventory.push({
+
+            number: "REV-SALE-" + Date.now(),
+
+            amount: saleAmount,
+
+            source: "إلغاء مبيعات من الصندوق",
+
+            date: getCurrentDateTime()
+        });
+    }
+
+    showToast(
+        "🗑️ تم حذف الإيداع وحذف المبيعات وإرجاع المبلغ للمخزون",
+        "warning"
+    );
+
+        }else{
+
+            showToast(
+                "🗑️ تم حذف العملية من الصندوق",
+                "success"
+            );
+        }
+
+        saveData();
+
+        loadTableData();
+
+        updateCashCounters();
+
+        return;
+    }
+
+    // =====================================
+    // المشتريات
+    // =====================================
+    let arr =
+    data[`branch${currentBranch}`][currentOpType];
+
+    let index =
+    arr.findIndex(i => i.number === number);
+
+    if(index === -1) return;
+
+    let deletedItem =
+    arr[index];
+
+    let amount =
+    deletedItem.amount;
+
+    // المشتريات
+    if(currentOpType === 'sales'){
+
+        data[`branch${currentBranch}`].inventory.push({
+
+            number: "REV-SALES-" + Date.now(),
+
+            amount: -amount,
+
+            source: "عكس المشتريات",
+
+            date: getCurrentDateTime()
+        });
+    }
+
+    // المبيعات أو المصاريف
+    if(currentOpType === 'purchases'
+    || currentOpType === 'expenses'){
+
+        data[`branch${currentBranch}`].inventory.push({
+
+            number: "REV-PUR-" + Date.now(),
+
+            amount: amount,
+
+            source: "عكس خصم المخزون",
+
+            date: getCurrentDateTime()
+        });
+    }
+
+    arr.splice(index,1);
+
+    saveData();
+
+    loadTableData();
+
+    showToast(
+        "🗑️ تم حذف العملية بنجاح",
+        "success"
+    );
+}
+    
+    document.getElementById('backFromBranchBtn').onclick = () => showBranchScreen();
+    document.getElementById('backToBranchFromOp').onclick = () => showBranchDetails(currentBranch);
+    
+async function startApp() {
+
+    // إظهار شاشة التحميل
+ document.getElementById('companyLogo').onclick =
+async function () {
+
+    try {
+
+        // إظهار اللودنج
+        document.getElementById('loadingScreen')
+        .style.display = 'flex';
+
+        // تحميل البيانات
+        await loadData();
+
+        // تحديث العدادات
+        updateAllCounters();
+
+        // فتح شاشة الفروع
+        showBranchScreen();
+
+    } catch(err){
+
+        console.log(err);
+
+        showToast(
+            "فشل تحميل البيانات",
+            "error"
+        );
+
+    } finally {
+
+        // إخفاء اللودنج دائماً
+        document.getElementById('loadingScreen')
+        .style.display = 'none';
+    }
+};
+}
+
+startApp();
+document.addEventListener('keydown', function(e){
+
+    // فقط داخل نافذة العمليات
+    const operationScreen =
+    document.getElementById('operationScreen');
+
+    if(operationScreen.classList.contains('hidden'))
+        return;
+
+    // تنفيذ الإضافة عند Enter
+    if(e.key === 'Enter'){
+
+        e.preventDefault();
+
+        addOperation();
+    }
+
+});
+async function clearBranchData(branch) {
+
+    const confirmDelete = confirm(
+        "هل أنت متأكد من تصفية جميع بيانات هذا الفرع؟"
+    );
+
+    if (!confirmDelete) return;
+
+    try {
+
+        // إظهار اللودنج
+        document.getElementById('loadingScreen')
+        .style.display = 'flex';
+
+        const response = await fetch(
+
+            API_URL +
+            "?action=clearBranch&branch=" +
+            branch,
+
+            {
+                method: "POST"
+            }
+        );
+
+        const result = await response.json();
+
+        if (result.success) {
+
+            // إعادة تحميل البيانات
+            await loadData();
+
+            // تحديث العدادات
+            updateAllCounters();
+
+            // تحديث شاشة الفروع
+            showBranchScreen();
+
+            showToast(
+                "✅ تم تصفية بيانات الفرع بنجاح",
+                "success"
+            );
+
+        } else {
+
+            showToast(
+                "❌ حدث خطأ أثناء التصفية",
+                "error"
+            );
+        }
+
+    } catch (err) {
+
+        console.log(err);
+
+        showToast(
+            "❌ تعذر الاتصال بالسيرفر",
+            "error"
+        );
+
+    } finally {
+
+        // إخفاء اللودنج
+        document.getElementById('loadingScreen')
+        .style.display = 'none';
+    }
+}
+// إغلاق الصفحة بالكامل
+// إغلاق الصفحة بالكامل
+function closeApplication(){
+
+    // محاولة إغلاق النافذة
+    window.close();
+
+    // إذا لم تغلق (بعض المتصفحات تمنع الإغلاق)
+    setTimeout(() => {
+
+        window.location.href = "about:blank";
+
+    }, 300);
+}
+</script>
+<script>
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+        .then(reg => {
+            console.log('Service Worker Registered');
+        })
+        .catch(err => {
+            console.log('Service Worker Failed', err);
+        });
+    });
+}
+</script>
+</body>
+</html>
