@@ -1,7 +1,8 @@
 {
-  "name": "نظام إدارة النقود",
+  "name": "نظام إدارة النقود - شركة الطيف والكاذي",
   "short_name": "إدارة النقود",
-  "start_url": "/",  
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#0d6efd",
