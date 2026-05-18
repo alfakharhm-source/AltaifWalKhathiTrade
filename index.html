@@ -954,7 +954,67 @@ margin:15px 0;
     </table>
 
 </div>
+<script>
+// ========== كود PWA للتثبيت على الهاتف ==========
+let deferredPrompt;
 
+// الاستماع لحدث التثبيت من المتصفح
+window.addEventListener('beforeinstallprompt', (e) => {
+    e.preventDefault();
+    deferredPrompt = e;
+    console.log('يمكن تثبيت التطبيق');
+    
+    // إظهار زر تثبيت مخصص (اختياري)
+    showInstallButton();
+});
+
+// إظهار زر تثبيت مخصص
+function showInstallButton() {
+    let installBtn = document.getElementById('pwaInstallBtn');
+    if (!installBtn) {
+        installBtn = document.createElement('button');
+        installBtn.id = 'pwaInstallBtn';
+        installBtn.innerText = '📱 تثبيت التطبيق على الهاتف';
+        installBtn.style.position = 'fixed';
+        installBtn.style.bottom = '20px';
+        installBtn.style.left = '20px';
+        installBtn.style.right = '20px';
+        installBtn.style.backgroundColor = '#0d6efd';
+        installBtn.style.color = 'white';
+        installBtn.style.border = 'none';
+        installBtn.style.padding = '15px';
+        installBtn.style.borderRadius = '50px';
+        installBtn.style.fontSize = '16px';
+        installBtn.style.fontWeight = 'bold';
+        installBtn.style.zIndex = '9999';
+        installBtn.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        installBtn.style.cursor = 'pointer';
+        document.body.appendChild(installBtn);
+        
+        installBtn.addEventListener('click', async () => {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                const { outcome } = await deferredPrompt.userChoice;
+                if (outcome === 'accepted') {
+                    console.log('تم تثبيت التطبيق');
+                    installBtn.style.display = 'none';
+                }
+                deferredPrompt = null;
+            }
+        });
+    }
+}
+
+// التحقق من وضع التشغيل (كمتصفح أم كتطبيق مثبت)
+if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+    console.log('يعمل كتطبيق مثبت');
+    // إخفاء زر التثبيت إذا كان التطبيق مثبتاً بالفعل
+    const btn = document.getElementById('pwaInstallBtn');
+    if (btn) btn.style.display = 'none';
+} else {
+    console.log('يعمل في المتصفح - يمكن طلب التثبيت');
+}
+</script>
 <script>
     const API_URL =
 "https://script.google.com/macros/s/AKfycbyHqSsvpGhpmCl_JOU8klQIeU9pPEazRorn3UMi9o9-y_idqseNkaaysGfqGZdeGvby/exec";
