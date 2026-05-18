@@ -3145,17 +3145,31 @@ function closeApplication(){
 }
 </script>
 <script>
+<script>
+// فحص Service Worker والتثبيت
 if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-        .then(reg => {
-            console.log('Service Worker Registered');
-        })
-        .catch(err => {
-            console.log('Service Worker Failed', err);
-        });
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./service-worker.js')
+    .then(reg => {
+      console.log('Service Worker registered successfully:', reg);
+      // التحقق من إمكانية التثبيت
+      window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('Can be installed!');
+        e.preventDefault();
+        // يمكنك حفظ e.prompt() لاستخدامه لاحقاً
+      });
+    })
+    .catch(err => {
+      console.error('Service Worker registration failed:', err);
     });
+  });
 }
+
+// فحص manifest.json
+fetch('./manifest.json')
+  .then(response => response.json())
+  .then(data => console.log('Manifest loaded:', data))
+  .catch(err => console.error('Manifest failed to load:', err));
 </script>
 </body>
 </html>
