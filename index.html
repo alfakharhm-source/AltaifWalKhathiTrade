@@ -955,65 +955,116 @@ margin:15px 0;
 
 </div>
 <script>
-// ========== كود PWA للتثبيت على الهاتف ==========
+// ==========================================
+// كود PWA المتكامل - للتثبيت على الهاتف والكمبيوتر
+// ==========================================
+
 let deferredPrompt;
 
-// الاستماع لحدث التثبيت من المتصفح
+// 1. الاستماع لحدث التثبيت
 window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault();
     deferredPrompt = e;
-    console.log('يمكن تثبيت التطبيق');
-    
-    // إظهار زر تثبيت مخصص (اختياري)
+    console.log('✅ التطبيق جاهز للتثبيت');
     showInstallButton();
 });
 
-// إظهار زر تثبيت مخصص
+// 2. إظهار زر التثبيت المخصص
 function showInstallButton() {
-    let installBtn = document.getElementById('pwaInstallBtn');
-    if (!installBtn) {
-        installBtn = document.createElement('button');
-        installBtn.id = 'pwaInstallBtn';
-        installBtn.innerText = '📱 تثبيت التطبيق على الهاتف';
-        installBtn.style.position = 'fixed';
-        installBtn.style.bottom = '20px';
-        installBtn.style.left = '20px';
-        installBtn.style.right = '20px';
-        installBtn.style.backgroundColor = '#0d6efd';
-        installBtn.style.color = 'white';
-        installBtn.style.border = 'none';
-        installBtn.style.padding = '15px';
-        installBtn.style.borderRadius = '50px';
-        installBtn.style.fontSize = '16px';
-        installBtn.style.fontWeight = 'bold';
-        installBtn.style.zIndex = '9999';
-        installBtn.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
-        installBtn.style.cursor = 'pointer';
-        document.body.appendChild(installBtn);
-        
-        installBtn.addEventListener('click', async () => {
-            if (deferredPrompt) {
-                deferredPrompt.prompt();
-                const { outcome } = await deferredPrompt.userChoice;
-                if (outcome === 'accepted') {
-                    console.log('تم تثبيت التطبيق');
-                    installBtn.style.display = 'none';
-                }
-                deferredPrompt = null;
-            }
-        });
-    }
+    if (document.getElementById('pwaInstallBtn')) return;
+    
+    const installBtn = document.createElement('button');
+    installBtn.id = 'pwaInstallBtn';
+    installBtn.innerHTML = '📱 تثبيت التطبيق على الجهاز';
+    installBtn.style.cssText = `
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background: #0d6efd;
+        color: white;
+        border: none;
+        border-radius: 50px;
+        padding: 12px 24px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        z-index: 9999;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+        transition: all 0.3s ease;
+    `;
+    
+    installBtn.onclick = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') {
+            console.log('✅ تم تثبيت التطبيق');
+            installBtn.remove();
+            showToastMessage('تم تثبيت التطبيق بنجاح!', 'success');
+        }
+        deferredPrompt = null;
+    };
+    
+    document.body.appendChild(installBtn);
+    
+    // إخفاء الزر على الهواتف بعد 3 ثواني لأنه يظهر تلقائياً
+    setTimeout(() => {
+        if (window.matchMedia('(display-mode: standalone)').matches) {
+            installBtn.style.display = 'none';
+        }
+    }, 3000);
 }
 
-// التحقق من وضع التشغيل (كمتصفح أم كتطبيق مثبت)
+// 3. حل مشكلة فتح التطبيق من الأيقونة (الأهم!)
 if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
-    console.log('يعمل كتطبيق مثبت');
-    // إخفاء زر التثبيت إذا كان التطبيق مثبتاً بالفعل
+    console.log('📱 يعمل كتطبيق مثبت');
+    
+    // إذا تم فتح التطبيق من الأيقونة، تأكد من تحميل البيانات
+    window.addEventListener('load', () => {
+        if (typeof loadData === 'function') {
+            loadData();
+        }
+    });
+}
+
+// 4. دالة عرض الرسائل
+function showToastMessage(message, type = 'success') {
+    const toast = document.createElement('div');
+    toast.className = `toast-message ${type}`;
+    toast.innerHTML = `${type === 'success' ? '✅' : 'ℹ️'} ${message}`;
+    toast.style.cssText = `
+        position: fixed;
+        top: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        background: ${type === 'success' ? '#2e7d32' : '#0d6efd'};
+        color: white;
+        padding: 12px 24px;
+        border-radius: 50px;
+        z-index: 10000;
+        font-weight: bold;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+    `;
+    document.body.appendChild(toast);
+    setTimeout(() => toast.remove(), 3000);
+}
+
+// 5. تسجيل Service Worker مع تحسين الأداء
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js')
+            .then(reg => console.log('✅ Service Worker registered:', reg))
+            .catch(err => console.error('❌ Service Worker error:', err));
+    });
+}
+
+// 6. إخفاء زر التثبيت إذا كان التطبيق يعمل بالفعل
+if (window.matchMedia('(display-mode: standalone)').matches) {
     const btn = document.getElementById('pwaInstallBtn');
     if (btn) btn.style.display = 'none';
-} else {
-    console.log('يعمل في المتصفح - يمكن طلب التثبيت');
 }
+
+console.log('✅ كود PWA يعمل بشكل صحيح');
 </script>
 <script>
     const API_URL =
