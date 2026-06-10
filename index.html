@@ -361,7 +361,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            flex-wrap: wrap;
+            flex-wrap: NOwrap;
             gap: 15px;
             margin-bottom: 20px;
         }
@@ -400,7 +400,22 @@
             body {
                 padding: 8px;
             }
+     .branch-header{
+        flex-direction:row !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        flex-wrap:nowrap !important;
+    }
 
+    #branchTitle{
+        font-size:18px;
+    }
+
+    #branchFilterBtn{
+        width:auto !important;
+        padding:8px 12px;
+        font-size:13px;
+    }
             .screen {
                 padding: 15px;
                 border-radius: 20px;
@@ -460,6 +475,22 @@
         }
 
         @media (min-width: 769px) and (max-width: 1024px) {
+               .branch-header{
+        flex-direction:row !important;
+        justify-content:space-between !important;
+        align-items:center !important;
+        flex-wrap:nowrap !important;
+    }
+
+    #branchTitle{
+        font-size:18px;
+    }
+
+    #branchFilterBtn{
+        width:auto !important;
+        padding:8px 12px;
+        font-size:13px;
+    }
             .icons-grid {
                 grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
             }
