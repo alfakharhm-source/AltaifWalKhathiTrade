@@ -661,6 +661,77 @@
     </style>
 </head>
 <body>
+    <div id="confirmModal" style="
+display:none;
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.45);
+z-index:999999;
+justify-content:center;
+align-items:center;
+">
+
+    <div style="
+    background:#fff;
+    width:90%;
+    max-width:420px;
+    border-radius:24px;
+    padding:25px;
+    text-align:center;
+    box-shadow:0 10px 35px rgba(0,0,0,.25);
+    ">
+
+        <div style="font-size:60px;">
+            ⚠️
+        </div>
+
+        <h2 style="
+        color:#1e3c72;
+        margin:10px 0;
+        ">
+            تأكيد العملية
+        </h2>
+
+        <p id="confirmMessage"
+        style="
+        margin:15px 0 25px;
+        font-size:16px;
+        ">
+        </p>
+
+        <div style="
+        display:flex;
+        gap:10px;
+        ">
+
+            <button
+                id="confirmYesBtn"
+                style="
+                flex:1;
+                background:#dc3545;
+                "
+            >
+                نعم
+            </button>
+
+            <button
+                onclick="confirmModalCancel()"
+                style="
+                flex:1;
+                background:#6c757d;
+                "
+            >
+                إلغاء
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
     <button id="closeAppBtn" onclick="closeApplication()">
     ❌ إغلاق الصفحة
 </button>
@@ -699,10 +770,6 @@
                 <div class="counter" id="branch1TotalCounter">0</div>
             </div>
 
-            <button class="clear-btn" onclick="clearBranchData(1)">
-                🗑 تصفير بيانات فرع الصبيخي
-            </button>
-
         </div>
 
         <div class="icon-card">
@@ -713,10 +780,6 @@
                 <div class="counter" id="branch2TotalCounter">0</div>
             </div>
 
-            <button class="clear-btn" onclick="clearBranchData(2)">
-                🗑 تصفير بيانات فرع الصناعية
-            </button>
-
         </div>
 
     </div>
@@ -725,10 +788,19 @@
 
 <div id="branchDetailsScreen" class="screen hidden">
     <button class="back-btn" id="backFromBranchBtn">🔙 رجوع للفروع</button>
-    <div class="branch-header">
-        <h2 id="branchTitle">فرع</h2>
-       
-    </div>
+  <div class="branch-header">
+
+    <h2 id="branchTitle">فرع</h2>
+
+    <button
+        id="branchFilterBtn"
+        class="danger"
+        onclick="clearBranchData(currentBranch)"
+    >
+        🗑️ تصفية بيانات الفرع
+    </button>
+
+</div>
     <div class="icons-grid" id="branchIconsContainer"></div>
 </div>
 
@@ -954,6 +1026,7 @@ margin:15px 0;
     </table>
 
 </div>
+
 <script>
 // ==========================================
 // كود PWA المتكامل - للتثبيت على الهاتف والكمبيوتر
@@ -3115,11 +3188,12 @@ document.addEventListener('keydown', function(e){
 });
 async function clearBranchData(branch) {
 
-    const confirmDelete = confirm(
-        "هل أنت متأكد من تصفية جميع بيانات هذا الفرع؟"
-    );
+    const confirmDelete =
+await showConfirmModal(
+    "هل أنت متأكد من تصفية جميع بيانات هذا الفرع؟"
+);
 
-    if (!confirmDelete) return;
+if(!confirmDelete) return;
 
     try {
 
@@ -3194,8 +3268,45 @@ function closeApplication(){
 
     }, 300);
 }
+function showConfirmModal(message){
+
+    return new Promise(resolve=>{
+
+        document.getElementById(
+            "confirmMessage"
+        ).innerText = message;
+
+        document.getElementById(
+            "confirmModal"
+        ).style.display = "flex";
+
+        document.getElementById(
+            "confirmYesBtn"
+        ).onclick = ()=>{
+
+            closeConfirmModal();
+
+            resolve(true);
+        };
+
+        window.confirmModalCancel = ()=>{
+
+            closeConfirmModal();
+
+            resolve(false);
+        };
+
+    });
+}
+
+function closeConfirmModal(){
+
+    document.getElementById(
+        "confirmModal"
+    ).style.display = "none";
+}
+
 </script>
-<script>
 <script>
 // فحص Service Worker والتثبيت
 if ('serviceWorker' in navigator) {
